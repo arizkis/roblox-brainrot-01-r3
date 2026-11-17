@@ -1,21 +1,47 @@
-# roblox-brainrot-01 starter
+# BRAINROT BAZAAR
 
-A working entry for make.fun's "Make the best AI Roblox brainrot game" bounty (roblox-brainrot-01), laid out as your
-repository: a Rojo project whose game is a grey square that moves with the arrow keys. It is a starting point, not a
-winner, and not yet the 3D game the bounty asks for: its square is drawn on the screen, not in Roblox's 3D world.
+A Rojo-first 3D Roblox collection game for make.fun's roblox-brainrot-01 bounty.
+This foundation commit contains the static plaza and character construction.
+Conveyor movement, player base assignment, income, carrying, stealing, locks,
+tsunamis, rebirths and the HUD are scheduled for subsequent build turns.
 
-- `main.ts` (Node 22, standard library only) hands the game in: it copies `game.rbxl`, `src/`, `screenshots/` and
-  `PLAY.json` to `/output`, leaving out every name that starts with a dot (such as `.gitkeep` or `.DS_Store`, which
-  fail an entry), and writes `/output/dossier.json` with `vendor/makefun-roblox.ts`, the kit's copy, unchanged.
-- `game.rbxl` is the place Rojo builds from `src/` and `default.project.json`; `screenshots/` holds three captures of
-  it; `PLAY.json` names no place yet, so the gate refuses the starter as it stands until it names your published one.
-- One of your screenshots must also be your game's first thumbnail on Roblox: the same picture, uploaded on the
-  Creator Dashboard with your game's icon.
-- `TOUR.json` is an example of the optional tour: for each screenshot, the keys that bring the game to that screen.
+## Source layout
 
-Run it as the grader does, writing `out/` in place of `/output`:
+- `src/shared/GameConfig.luau`: immutable tiers, prices, income, mutation odds,
+  world dimensions and 18 original character part recipes. Mutation probabilities
+  are absolute, with the remaining probability normal; only one mutation applies.
+- `src/server/CharacterFactory.luau`: `Create(characterId, mutationId?)` returns
+  an unparented, root-welded Model. Its pivot is at ground level and it faces -Z.
+  Bodies scale from 3.1 to 5 studs by tier. Mutations affect parts, trim and glow;
+  every character has a three-line name/rarity/income billboard.
+- `src/server/WorldBuilder.luau`: builds `Workspace.BrainrotBazaar` at server
+  startup, including the diagonal belt, six unclaimed plots with six pads each,
+  owner signs, lock pedestals, reserved expansion areas and a neutral spawn.
+  `Build()` returns the plot and conveyor references without claiming anything.
+- `src/server/GameState.luau`: sole server runtime state home; typed empty
+  player/character maps, base references and world references. No persistence yet.
+- `src/server/init.server.luau`: builds the world and stores its references.
+- `src/client/Game.client.luau`: placeholder for future controllers; default
+  Roblox camera and movement are enabled, with the square demo removed.
 
-    mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+All place Script, LocalScript and ModuleScript sources live under `src/` and
+are mounted by `default.project.json`. No scripts are generated at runtime.
+`game.rbxl` must be rebuilt from these sources after every build turn:
 
-The rules are on the bounty's page (/bounty/roblox-brainrot-01) and in the kit's RULES.txt,
-which gives every command in order (Before you submit, then Enter).
+```sh
+rojo build default.project.json --output /tmp/smoke.rbxl
+rojo build default.project.json --output game.rbxl
+```
+
+`PLAY.json` identifies the owner's published experience. Rebuilding locally does
+not publish changes to Roblox. The inherited screenshots and `TOUR.json` still
+show the kit starter and will be replaced when the game is ready to capture.
+
+`main.ts` remains the kit's Node 22 submission entrypoint, using the unchanged
+vendored dossier helper. It copies `game.rbxl`, `src/`, `screenshots/` and
+`PLAY.json` to the output directory and describes the resulting place.
+
+```sh
+mkdir -p out
+MAKEFUN_OUTPUT_DIR=out node main.ts
+```
